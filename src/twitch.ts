@@ -11,6 +11,44 @@ const logger = (...args) => {
 };
 
 class TwitchApi {
+  async getChannels({ page }) {
+    const limit = 100;
+    const offset = page > 0 ? (page - 1) * limit : 0;
+    return await this.get('kraken/streams', {
+      limit,
+      offset,
+    }).then(({ streams }) => {
+      const items = Array.from(streams || []).map<ChannelItem>(({ channel }: any) => ({
+        type: 'channel',
+        name: channel.status,
+        game: channel.game,
+        language: channel.language,
+        ids: {
+          id: channel._id,
+        },
+        images: {
+          logo: channel.logo,
+          poster: channel.video_banner,
+          background: channel.profile_banner,
+        },
+        sources: [
+          {
+            id: 'main',
+            type: 'url',
+            url: channel.url,
+          },
+        ],
+      }));
+      return {
+        hasMore: streams.length === limit,
+        items,
+        features: {
+          filter: [],
+        },
+      };
+    });
+  }
+
   async getGames({ page }) {
     const limit = 100;
     const offset = page > 0 ? (page - 1) * limit : 0;
@@ -29,25 +67,33 @@ class TwitchApi {
         hasMore: offset + limit < _total,
         items,
         features: {
-          filter: undefined,
+          filter: [],
         },
       };
     });
   }
 
-  async getGame({ id }): Promise<ChannelItem> {
-    return await this.get('helix/games', { id }).then((game: any) => {
+  async getChannel({ ids }): Promise<ChannelItem> {
+    return await this.get(`kraken/channels/${ids.id}`).then((channel: any) => {
       return {
         type: 'channel',
-        ids: { id: game.id },
-        name: game.name,
-        description: '',
-        poster: game.box_art_url,
+        ids: { id: channel._id },
+        name: channel.status,
+        description: channel.description,
+        releaseDate: channel.created_at,
+        poster: channel.video_banner,
+        game: channel.game,
+        language: channel.language,
+        images: {
+          logo: channel.logo,
+          poster: channel.video_banner,
+          background: channel.profile_banner,
+        },
         sources: [
           {
             id: 'main',
             type: 'url',
-            url: `https://www.twitch.tv/directory/game/${game.name}`,
+            url: channel.url,
           },
         ],
       };

@@ -5,37 +5,15 @@ import twitch from './twitch';
 export const directoryHandler: WorkerHandlers['directory'] = async (input: any, ctx) => {
   //console.log(input);
   if (input.id === 'channels') {
-    return {
-      hasMore: false,
-      items: [],
-      features: {
-        filter: [],
-      },
-    };
+    return await twitch.getChannels(input);
   } else {
-    const result = await twitch.getGames(input);
-    return result;
+    return await twitch.getGames(input);
   }
 };
 
 export const itemHandler: WorkerHandlers['item'] = async (input: any, ctx) => {
   //console.log(input);
-  return await twitch.getGame(input);
-  /*
-  return {
-    type: 'channel',
-    ids: input.ids,
-    name: `Channel 1`,
-    description: `description`,
-    sources: [
-      {
-        id: 'main',
-        type: 'url',
-        url: `https://twitch.com/ok`,
-      },
-    ],
-  };
-  */
+  return await twitch.getChannel(input);
 };
 
 export const sourceHandler: WorkerHandlers['source'] = async (input, ctx) => {
