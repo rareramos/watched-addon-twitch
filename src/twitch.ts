@@ -100,6 +100,19 @@ class TwitchApi {
     });
   }
 
+  async getGame({ id }): Promise<DirectoryItem> {
+    return await this.get(`helix/games`, { id }).then(({ data }: any) => {
+      const game = data[0] || {};
+      return {
+        type: 'directory',
+        name: game.name,
+        images: { logo: game.box_art_url, poster: game.box_art_url, background: game.box_art_url },
+        id: game.id,
+        // args: { filter: { typeId: game.id } },
+      };
+    });
+  }
+
   async get(pathname = '', query = {}, options = {}) {
     return this.api({ pathname, query }, options);
   }

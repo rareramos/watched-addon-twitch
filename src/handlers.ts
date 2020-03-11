@@ -6,6 +6,12 @@ export const directoryHandler: WorkerHandlers['directory'] = async (input: any, 
   //console.log(input);
   if (input.id === 'channels') {
     return await twitch.getChannels(input);
+  } else if (input.id) {
+    const game = await twitch.getGame(input);
+    return {
+      hasMore: false,
+      items: [game],
+    };
   } else {
     return await twitch.getGames(input);
   }
