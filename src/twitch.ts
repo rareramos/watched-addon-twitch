@@ -5,16 +5,18 @@ import { parse as parseUrl, format as formatUrl } from 'url';
 const apiUrl = 'https://api.twitch.tv';
 
 const logger = (...args) => {
-  if (process.env.DEBUG) {
-    console.log(`API `, ...args);
-  }
+  //if (process.env.DEBUG) {
+  console.log(`API `, ...args);
+  //}
 };
 
 class TwitchApi {
-  async getChannels({ page }) {
+  async getChannels({ filter, page }) {
+    const game = filter.game;
     const limit = 100;
     const offset = page > 0 ? (page - 1) * limit : 0;
     return await this.get('kraken/streams', {
+      game,
       limit,
       offset,
     }).then(({ streams }) => {
@@ -60,8 +62,8 @@ class TwitchApi {
         type: 'directory',
         name: game.name,
         images: { poster: game.box.large },
-        id: game._id,
-        args: { filter: { typeId: game._id } },
+        id: 'channels',
+        args: { filter: { game: game.name } },
       }));
       return {
         hasMore: offset + limit < _total,
@@ -224,7 +226,7 @@ class TwitchApi {
     }
     let data = await res.json();
     data = typeof data === 'string' ? JSON.parse(data) : data;
-    logger('response', res.url, res.status, res.headers.get('content-type'), data);
+    //logger('response', res.url, res.status, res.headers.get('content-type'), data);
     return data;
   }
 
@@ -238,7 +240,7 @@ class TwitchApi {
       return null;
     }
     const data = await res.text();
-    logger('response', res.url, res.status, res.headers.get('content-type'), data);
+    //logger('response', res.url, res.status, res.headers.get('content-type'), data);
     return data;
   }
 }
