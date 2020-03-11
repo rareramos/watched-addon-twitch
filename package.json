@@ -11,7 +11,9 @@
   },
   "dependencies": {
     "@watchedcom/sdk": "^0.19.1",
-    "twitch": "^4.0.6"
+    "node-fetch": "^2.6.0",
+    "twitch": "^4.0.6",
+    "url": "^0.11.0"
   },
   "devDependencies": {
     "typescript": "^3.8.3",

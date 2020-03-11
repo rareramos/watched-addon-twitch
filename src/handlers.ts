@@ -1,21 +1,27 @@
-import { ChannelItem, WorkerHandlers, DirectoryItem, DirectoryFeatures } from '@watchedcom/sdk';
-import TwitchClient from 'twitch';
+import { WorkerHandlers } from '@watchedcom/sdk';
+import twitch from './twitch';
 
-const clientId = process.env.TWITCH_CLIENT_ID as string;
-const clientSecret = process.env.TWITCH_SECRET_KEY as string;
-const twitchClient = TwitchClient.withClientCredentials(clientId, clientSecret);
-
-export const directoryHandler: WorkerHandlers['directory'] = async (input, ctx) => {
-  return {
-    hasMore: false,
-    items: [],
-    features: {
-      filter: [],
-    },
-  };
+// input {id, search, filter, page}
+export const directoryHandler: WorkerHandlers['directory'] = async (input: any, ctx) => {
+  //console.log(input);
+  if (input.id === 'channels') {
+    return {
+      hasMore: false,
+      items: [],
+      features: {
+        filter: [],
+      },
+    };
+  } else {
+    const result = await twitch.getGames(input);
+    return result;
+  }
 };
 
-export const itemHandler: WorkerHandlers['item'] = async (input, ctx) => {
+export const itemHandler: WorkerHandlers['item'] = async (input: any, ctx) => {
+  //console.log(input);
+  return await twitch.getGame(input);
+  /*
   return {
     type: 'channel',
     ids: input.ids,
@@ -29,6 +35,7 @@ export const itemHandler: WorkerHandlers['item'] = async (input, ctx) => {
       },
     ],
   };
+  */
 };
 
 export const sourceHandler: WorkerHandlers['source'] = async (input, ctx) => {
