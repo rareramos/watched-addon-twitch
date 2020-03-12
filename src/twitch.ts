@@ -60,8 +60,8 @@ class TwitchApi {
       const items = Array.from(top || []).map<DirectoryItem>(({ game }: any) => ({
         type: 'directory',
         name: game.name,
-        images: { poster: game.box.large || undefined },
-        id: 'channels',
+        images: { poster: game.box.large },
+        id: game._id,
         args: { filter: { game: game.name } },
       }));
       return {
