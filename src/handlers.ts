@@ -3,7 +3,6 @@ import twitch from './twitch';
 
 // input {id, search, filter, page}
 export const directoryHandler: WorkerHandlers['directory'] = async (input: any, ctx) => {
-  console.log(input);
   if (input.id === 'channels') {
     return await twitch.getChannels(input);
   } else {
