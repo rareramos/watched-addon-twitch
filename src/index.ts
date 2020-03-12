@@ -3,7 +3,7 @@ import { directoryHandler, itemHandler, sourceHandler } from './handlers';
 
 export const twitchAddon = createWorkerAddon({
   id: 'twitch',
-  name: 'twitch',
+  name: 'Twitch Games',
   version: '0.0.1',
   itemTypes: ['channel'],
   requestArgs: [['name', 'year']],
