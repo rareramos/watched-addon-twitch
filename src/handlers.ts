@@ -5,6 +5,8 @@ import twitch from './twitch';
 export const directoryHandler: WorkerHandlers['directory'] = async (input: any, ctx) => {
   if (input.id) {
     return await twitch.getChannels(input);
+  } else if (input.search) {
+    return await twitch.searchChannels(input);
   } else {
     return await twitch.getGames(input);
   }

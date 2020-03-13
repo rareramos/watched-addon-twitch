@@ -6,7 +6,23 @@ export const twitchAddon = createWorkerAddon({
   name: 'Twitch Games',
   version: '0.0.1',
   itemTypes: ['channel'],
-  requestArgs: [['name', 'year']],
+  defaultDirectoryOptions: {
+    imageShape: 'landscape',
+    displayName: true,
+  },
+  defaultDirectoryFeatures: {
+    search: { enabled: true },
+  },
+  dashboards: [
+    {
+      id: 'games',
+      name: 'Twitch Games',
+    },
+    {
+      id: '',
+      name: 'Top Twitch Channels',
+    },
+  ],
 });
 
 twitchAddon.registerActionHandler('directory', directoryHandler);

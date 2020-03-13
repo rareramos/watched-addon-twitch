@@ -78,6 +78,39 @@ class TwitchApi {
     });
   }
 
+  async searchChannels({ search, page }) {
+    const limit = 25;
+    const offset = page > 0 ? (page - 1) * limit : 0;
+    return await this.get('kraken/search/streams', {
+      query: search,
+      limit,
+      offset,
+    }).then(({ streams }) => {
+      const items = Array.from(streams || []).map<ChannelItem>(({ channel }: any) => ({
+        id: channel._id,
+        type: 'channel',
+        name: channel.status,
+        game: channel.game,
+        language: channel.language,
+        ids: {
+          id: channel._id,
+        },
+        images: {
+          logo: channel.logo || undefined,
+          poster: channel.video_banner || undefined,
+          background: channel.profile_banner || undefined,
+        },
+      }));
+      return {
+        hasMore: streams.length === limit,
+        items,
+        features: {
+          filter: websiteFilters,
+        },
+      };
+    });
+  }
+
   async getGames({ page }) {
     const limit = 25;
     const offset = page > 0 ? (page - 1) * limit : 0;
