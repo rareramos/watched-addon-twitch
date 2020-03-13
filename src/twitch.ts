@@ -1,8 +1,11 @@
 import { ChannelItem, DirectoryItem, DirectoryFeatures } from '@watchedcom/sdk';
 import fetch from 'node-fetch';
 import { parse as parseUrl, format as formatUrl } from 'url';
-import { capitalize } from 'lodash';
-import * as m3u8 from 'm3u8-parser';
+//import { capitalize } from 'lodash';
+//import * as m3u8 from 'm3u8-parser';
+
+let locales = require('./locales.json');
+locales = locales.map(item => ({ key: item.code, value: item.nativeName || item.name }));
 
 const apiUrl = 'https://api.twitch.tv';
 
@@ -16,20 +19,7 @@ const websiteFilters: DirectoryFeatures['filter'] = [
   {
     name: 'Language',
     id: 'broadcaster_language',
-    values: [
-      {
-        value: 'All',
-        key: '',
-      },
-      {
-        value: 'English',
-        key: 'en',
-      },
-      {
-        value: 'German',
-        key: 'de',
-      },
-    ],
+    values: locales,
   },
   /*
   {
