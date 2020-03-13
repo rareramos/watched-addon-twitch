@@ -11,7 +11,7 @@ export const twitchAddon = createWorkerAddon({
     displayName: true,
   },
   defaultDirectoryFeatures: {
-    //search: { enabled: true },
+    search: { enabled: true },
   },
   dashboards: [
     {
