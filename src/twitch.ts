@@ -31,6 +31,7 @@ const websiteFilters: DirectoryFeatures['filter'] = [
       },
     ],
   },
+  /*
   {
     name: 'Audience',
     id: 'audience',
@@ -42,6 +43,7 @@ const websiteFilters: DirectoryFeatures['filter'] = [
       })),
     ],
   },
+  */
 ];
 
 class TwitchApi {
