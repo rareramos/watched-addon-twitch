@@ -151,7 +151,7 @@ class TwitchApi {
         images: {
           logo: item.logo,
           poster: item.video_banner || undefined,
-          background: item.profile_banner,
+          background: item.profile_banner || undefined,
         },
       };
     });
