@@ -15,7 +15,7 @@ const logger = (...args) => {
 const websiteFilters: DirectoryFeatures['filter'] = [
   {
     name: 'Language',
-    id: 'language',
+    id: 'broadcaster_language',
     values: [
       {
         value: 'All',
