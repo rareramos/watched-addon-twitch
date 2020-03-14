@@ -5,7 +5,7 @@ import { parse as parseUrl, format as formatUrl } from 'url';
 //import * as m3u8 from 'm3u8-parser';
 
 let locales = require('./locales.json');
-locales = locales.map(item => ({ key: item.code, value: item.nativeName || item.name }));
+locales = locales.map(item => ({ key: item.code, value: item.name }));
 
 const apiUrl = 'https://api.twitch.tv';
 
