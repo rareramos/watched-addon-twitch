@@ -1,8 +1,6 @@
 import { ChannelItem, DirectoryItem, DirectoryFeatures } from '@watchedcom/sdk';
 import fetch from 'node-fetch';
 import { parse as parseUrl, format as formatUrl } from 'url';
-//import { capitalize } from 'lodash';
-//import * as m3u8 from 'm3u8-parser';
 
 let locales = require('./locales.json');
 locales = locales.map(item => ({ key: item.code, value: item.name }));
@@ -10,9 +8,9 @@ locales = locales.map(item => ({ key: item.code, value: item.name }));
 const apiUrl = 'https://api.twitch.tv';
 
 const logger = (...args) => {
-  //if (process.env.DEBUG) {
-  console.log(`API `, ...args);
-  //}
+  if (process.env.DEBUG) {
+    console.log(`API `, ...args);
+  }
 };
 
 const websiteFilters: DirectoryFeatures['filter'] = [
@@ -45,21 +43,9 @@ class TwitchApi {
       limit,
       offset,
     }).then(({ streams }) => {
-      const items = Array.from(streams || []).map<ChannelItem>(({ channel }: any) => ({
-        id: channel._id,
-        type: 'channel',
-        name: channel.status,
-        game: channel.game,
-        language: channel.language,
-        ids: {
-          id: channel._id,
-        },
-        images: {
-          logo: channel.logo || undefined,
-          poster: channel.video_banner || undefined,
-          background: channel.profile_banner || undefined,
-        },
-      }));
+      const items = Array.from(streams || []).map<ChannelItem>(({ channel }: any) =>
+        this.convertChannel(channel)
+      );
       return {
         hasMore: streams.length === limit,
         items,
@@ -78,21 +64,9 @@ class TwitchApi {
       limit,
       offset,
     }).then(({ streams }) => {
-      const items = Array.from(streams || []).map<ChannelItem>(({ channel }: any) => ({
-        id: channel._id,
-        type: 'channel',
-        name: channel.status,
-        game: channel.game,
-        language: channel.language,
-        ids: {
-          id: channel._id,
-        },
-        images: {
-          logo: channel.logo || undefined,
-          poster: channel.video_banner || undefined,
-          background: channel.profile_banner || undefined,
-        },
-      }));
+      const items = Array.from(streams || []).map<ChannelItem>(({ channel }: any) =>
+        this.convertChannel(channel)
+      );
       return {
         hasMore: streams.length === limit,
         items,
@@ -110,13 +84,9 @@ class TwitchApi {
       limit,
       offset,
     }).then(({ _total, top }) => {
-      const items = Array.from(top || []).map<DirectoryItem>(({ game }: any) => ({
-        type: 'directory',
-        name: game.name,
-        images: { poster: game.box.large },
-        id: game._id,
-        args: { filter: { game: game.name } },
-      }));
+      const items = Array.from(top || []).map<DirectoryItem>(({ game }: any) =>
+        this.convertGame(game)
+      );
       return {
         hasMore: offset + limit < _total,
         items,
@@ -128,46 +98,17 @@ class TwitchApi {
   }
 
   async getChannel({ ids }): Promise<ChannelItem> {
-    const channel: ChannelItem = await this.get(`kraken/channels/${ids.id}`).then((item: any) => {
-      return {
-        id: item.display_name,
-        type: 'channel',
-        ids: { id: item._id },
-        name: item.status,
-        description: item.description,
-        releaseDate: item.created_at,
-        poster: item.video_banner || undefined,
-        game: item.game,
-        language: item.language,
-        url: item.url,
-        images: {
-          logo: item.logo,
-          poster: item.video_banner || undefined,
-          background: item.profile_banner || undefined,
-        },
-      };
-    });
-
-    channel.sources = [
-      {
-        id: channel.id,
-        name: channel.name,
-        type: 'externalUrl',
-        url: channel.url,
-      },
-    ];
-    /*
+    let channel: ChannelItem;
+    const data = await this.get(`kraken/channels/${ids.id}`);
     const result = await this.get(
-      `http://api.twitch.tv/api/channels/${encodeURIComponent(channel.id)}/access_token`,
-      { oauth_token: '7j41xaddjxx4pmbtl1bqecikm19zfb' }
+      `http://api.twitch.tv/api/channels/${encodeURIComponent(data.display_name)}/access_token`
     );
-
     if (result.sig) {
-      const result2 = await this.get(
-        `https://usher.ttvnw.net/api/channel/hls/${encodeURIComponent(
-          channel.id
-        ).toLowerCase()}.m3u8`,
-        {
+      const videoUrl = formatUrl({
+        host: 'usher.ttvnw.net',
+        protocol: 'https',
+        pathname: `api/channel/hls/${encodeURIComponent(data.display_name).toLowerCase()}.m3u8`,
+        query: {
           player: 'twitchweb',
           token: result.token,
           sig: result.sig,
@@ -175,32 +116,13 @@ class TwitchApi {
           allow_source: 'true',
           type: 'any',
           p: Math.floor(Math.random() * 999999 + 1),
-        }
-      );
-      //console.log(result2);
-      let parser = new m3u8.Parser();
-      parser.push(result2);
-      parser.end();
-      console.log(JSON.stringify(parser.manifest));
-      const playlist = parser.manifest.playlists.find(pl => pl.attributes.VIDEO === '360p30');
-      playlist.uri;
-      const result3 = await this.get(playlist.uri);
-      parser = new m3u8.Parser();
-      parser.push(result3);
-      parser.end();
-      console.log(JSON.stringify(parser.manifest));
-    } else {
-      channel.sources = [
-        {
-          id: channel.id,
-          title: channel.name,
-          type: 'externalUrl',
-          url: channel.url,
         },
-      ];
+      });
+      data.videoUrl = videoUrl;
+    } else {
+      data.externalUrl = data.url;
     }
-    */
-
+    channel = this.convertChannel(data);
     return channel;
   }
 
@@ -222,6 +144,54 @@ class TwitchApi {
     return String(url)
       .replace('{width}', String(w))
       .replace('{height}', String(h));
+  }
+
+  convertGame(data: any): DirectoryItem {
+    const game: DirectoryItem = {
+      type: 'directory',
+      name: data.name,
+      images: { poster: data.box.large },
+      id: data._id,
+      args: { filter: { game: data.name } },
+    };
+    return game;
+  }
+
+  convertChannel(data: any): ChannelItem {
+    const channel: ChannelItem = {
+      id: data.display_name,
+      type: 'channel',
+      ids: { id: data._id },
+      name: data.status,
+      description: data.description,
+      releaseDate: data.created_at,
+      game: data.game,
+      language: data.broadcaster_language,
+      url: data.url,
+      images: {
+        logo: data.logo || undefined,
+        poster: data.video_banner || undefined,
+        background: data.profile_banner || undefined,
+      },
+      sources: [],
+    };
+    if (data.videoUrl) {
+      channel.sources?.push({
+        id: channel.id,
+        name: channel.name,
+        type: 'url',
+        url: data.videoUrl,
+      });
+    }
+    if (data.externalUrl) {
+      channel.sources?.push({
+        id: channel.id,
+        name: channel.name,
+        type: 'externalUrl',
+        url: data.externalUrl,
+      });
+    }
+    return channel;
   }
 
   async get(pathname = '', query = {}, options = {}) {
@@ -354,7 +324,7 @@ class TwitchApi {
 const client = new TwitchApi();
 
 async function boot() {
-  await client.getChannel({ ids: { id: 71092938 } });
+  await client.getChannel({ ids: { id: 41203135 } });
 }
 boot();
 

@@ -12,10 +12,7 @@
   "dependencies": {
     "@watchedcom/sdk": "^0.19.1",
     "lodash": "^4.17.15",
-    "m3u8": "0.0.8",
-    "m3u8-parser": "^4.4.0",
     "node-fetch": "^2.6.0",
-    "twitch": "^4.0.6",
     "url": "^0.11.0"
   },
   "devDependencies": {
