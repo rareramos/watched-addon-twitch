@@ -18,6 +18,10 @@ export const twitchAddon = createWorkerAddon({
       id: '',
       name: 'Twitch Games',
     },
+    {
+      id: 'channels',
+      name: 'Top Twitch Channels',
+    },
   ],
 });
 

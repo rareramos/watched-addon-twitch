@@ -8,9 +8,9 @@ locales = locales.map(item => ({ key: item.code, value: item.name }));
 const apiUrl = 'https://api.twitch.tv';
 
 const logger = (...args) => {
-  if (process.env.DEBUG) {
-    console.log(`API `, ...args);
-  }
+  //if (process.env.DEBUG) {
+  console.log(`API `, ...args);
+  //}
 };
 
 const websiteFilters: DirectoryFeatures['filter'] = [
@@ -323,10 +323,12 @@ class TwitchApi {
 
 const client = new TwitchApi();
 
+/*
 async function boot() {
   await client.getChannel({ ids: { id: 41203135 } });
 }
 boot();
+*/
 
 export default client;
 
