@@ -4,8 +4,8 @@
   "main": "dist",
   "scripts": {
     "build": "tsc",
-    "start": "watched-sdk start --prod",
-    "develop": "watched-sdk start",
+    "start": "watched-sdk start --single --prod",
+    "develop": "watched-sdk start --single",
     "test": "jest",
     "test:watch": "jest --watch"
   },
