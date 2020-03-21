@@ -13,9 +13,9 @@ locales = locales.map(item => ({ key: item.code, value: item.name }));
 const apiUrl = "https://api.twitch.tv";
 
 const logger = (...args) => {
-  //if (process.env.DEBUG) {
-  console.log(`API `, ...args);
-  //}
+  if (process.env.DEBUG) {
+    console.log(`API `, ...args);
+  }
 };
 
 const websiteFilters: DirectoryFeatures["filter"] = [
