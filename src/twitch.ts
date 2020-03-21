@@ -1,11 +1,16 @@
-import { ChannelItem, DirectoryItem, DirectoryFeatures } from '@watchedcom/sdk';
-import fetch from 'node-fetch';
-import { parse as parseUrl, format as formatUrl } from 'url';
+import {
+  ChannelItem,
+  DirectoryItem,
+  DirectoryFeatures,
+  DirectoryRequest
+} from "@watchedcom/sdk";
+import fetch from "node-fetch";
+import { parse as parseUrl, format as formatUrl } from "url";
 
-let locales = require('./locales.json');
+let locales = require("./locales.json");
 locales = locales.map(item => ({ key: item.code, value: item.name }));
 
-const apiUrl = 'https://api.twitch.tv';
+const apiUrl = "https://api.twitch.tv";
 
 const logger = (...args) => {
   //if (process.env.DEBUG) {
@@ -13,12 +18,12 @@ const logger = (...args) => {
   //}
 };
 
-const websiteFilters: DirectoryFeatures['filter'] = [
+const websiteFilters: DirectoryFeatures["filter"] = [
   {
-    name: 'Language',
-    id: 'broadcaster_language',
-    values: locales,
-  },
+    name: "Language",
+    id: "broadcaster_language",
+    values: locales
+  }
   /*
   {
     name: 'Audience',
@@ -35,64 +40,63 @@ const websiteFilters: DirectoryFeatures['filter'] = [
 ];
 
 class TwitchApi {
-  async getChannels({ filter = {}, page }) {
+  async getChannels(input: DirectoryRequest) {
     const limit = 25;
-    const offset = page > 0 ? (page - 1) * limit : 0;
-    return await this.get('kraken/streams', {
-      ...filter,
+    const offset = input.cursor === 0 ? 0 : input.cursor;
+    return await this.get("kraken/streams", {
       limit,
-      offset,
+      offset
     }).then(({ streams }) => {
-      const items = Array.from(streams || []).map<ChannelItem>(({ channel }: any) =>
-        this.convertChannel(channel)
+      const items = Array.from(streams || []).map<ChannelItem>(
+        ({ channel }: any) => this.convertChannel(channel)
       );
       return {
-        hasMore: streams.length === limit,
+        nextCursor: streams.length === limit ? null : offset + streams.length,
         items,
         features: {
-          filter: websiteFilters,
-        },
+          filter: websiteFilters
+        }
       };
     });
   }
 
-  async searchChannels({ search, page }) {
+  async searchChannels(input: DirectoryRequest) {
     const limit = 25;
-    const offset = page > 0 ? (page - 1) * limit : 0;
-    return await this.get('kraken/search/streams', {
-      query: search,
+    const offset = input.cursor === 0 ? 0 : input.cursor;
+    return await this.get("kraken/search/streams", {
+      query: input.search,
       limit,
-      offset,
+      offset
     }).then(({ streams }) => {
-      const items = Array.from(streams || []).map<ChannelItem>(({ channel }: any) =>
-        this.convertChannel(channel)
+      const items = Array.from(streams || []).map<ChannelItem>(
+        ({ channel }: any) => this.convertChannel(channel)
       );
       return {
-        hasMore: streams.length === limit,
+        nextCursor: streams.length === limit ? null : offset + streams.length,
         items,
         features: {
-          filter: websiteFilters,
-        },
+          filter: websiteFilters
+        }
       };
     });
   }
 
-  async getGames({ page }) {
+  async getGames(input: DirectoryRequest) {
     const limit = 25;
-    const offset = page > 0 ? (page - 1) * limit : 0;
-    return await this.get('kraken/games/top', {
+    const offset = input.cursor === null ? 0 : <number>input.cursor;
+    return await this.get("kraken/games/top", {
       limit,
-      offset,
+      offset
     }).then(({ _total, top }) => {
       const items = Array.from(top || []).map<DirectoryItem>(({ game }: any) =>
         this.convertGame(game)
       );
       return {
-        hasMore: offset + limit < _total,
+        nextCursor: offset + limit < _total ? offset + items.length : null,
         items,
         features: {
-          filter: [],
-        },
+          filter: []
+        }
       };
     });
   }
@@ -101,22 +105,26 @@ class TwitchApi {
     let channel: ChannelItem;
     const data = await this.get(`kraken/channels/${ids.id}`);
     const result = await this.get(
-      `http://api.twitch.tv/api/channels/${encodeURIComponent(data.display_name)}/access_token`
+      `http://api.twitch.tv/api/channels/${encodeURIComponent(
+        data.display_name
+      )}/access_token`
     );
     if (result.sig) {
       const videoUrl = formatUrl({
-        host: 'usher.ttvnw.net',
-        protocol: 'https',
-        pathname: `api/channel/hls/${encodeURIComponent(data.display_name).toLowerCase()}.m3u8`,
+        host: "usher.ttvnw.net",
+        protocol: "https",
+        pathname: `api/channel/hls/${encodeURIComponent(
+          data.display_name
+        ).toLowerCase()}.m3u8`,
         query: {
-          player: 'twitchweb',
+          player: "twitchweb",
           token: result.token,
           sig: result.sig,
-          allow_audio_only: 'true',
-          allow_source: 'true',
-          type: 'any',
-          p: Math.floor(Math.random() * 999999 + 1),
-        },
+          allow_audio_only: "true",
+          allow_source: "true",
+          type: "any",
+          p: Math.floor(Math.random() * 999999 + 1)
+        }
       });
       data.videoUrl = videoUrl;
     } else {
@@ -131,10 +139,10 @@ class TwitchApi {
       const game = data[0] || {};
       const poster = this.getImage(game.box_art_url) || undefined;
       return {
-        type: 'directory',
+        type: "directory",
         name: game.name,
         images: { poster },
-        id: game.id,
+        id: game.id
         // args: { filter: { typeId: game.id } },
       };
     });
@@ -142,17 +150,17 @@ class TwitchApi {
 
   getImage(url: string, w = 285, h = 380) {
     return String(url)
-      .replace('{width}', String(w))
-      .replace('{height}', String(h));
+      .replace("{width}", String(w))
+      .replace("{height}", String(h));
   }
 
   convertGame(data: any): DirectoryItem {
     const game: DirectoryItem = {
-      type: 'directory',
+      type: "directory",
       name: data.name,
       images: { poster: data.box.large },
       id: data._id,
-      args: { filter: { game: data.name } },
+      args: { filter: { game: data.name } }
     };
     return game;
   }
@@ -160,7 +168,7 @@ class TwitchApi {
   convertChannel(data: any): ChannelItem {
     const channel: ChannelItem = {
       id: data.display_name,
-      type: 'channel',
+      type: "channel",
       ids: { id: data._id },
       name: data.status,
       description: data.description,
@@ -171,30 +179,30 @@ class TwitchApi {
       images: {
         logo: data.logo || undefined,
         poster: data.video_banner || undefined,
-        background: data.profile_banner || undefined,
+        background: data.profile_banner || undefined
       },
-      sources: [],
+      sources: []
     };
     if (data.videoUrl) {
       channel.sources?.push({
         id: channel.id,
         name: channel.name,
-        type: 'url',
-        url: data.videoUrl,
+        type: "url",
+        url: data.videoUrl
       });
     }
     if (data.externalUrl) {
       channel.sources?.push({
         id: channel.id,
         name: channel.name,
-        type: 'externalUrl',
-        url: data.externalUrl,
+        type: "externalUrl",
+        url: data.externalUrl
       });
     }
     return channel;
   }
 
-  async get(pathname = '', query = {}, options = {}) {
+  async get(pathname = "", query = {}, options = {}) {
     return this.api({ pathname, query }, options);
   }
 
@@ -203,8 +211,8 @@ class TwitchApi {
       { pathname, query },
       {
         ...options,
-        method: 'post',
-        body: data,
+        method: "post",
+        body: data
       }
     );
   }
@@ -214,8 +222,8 @@ class TwitchApi {
       { pathname, query },
       {
         ...options,
-        method: 'put',
-        body: data,
+        method: "put",
+        body: data
       }
     );
   }
@@ -225,7 +233,7 @@ class TwitchApi {
       { pathname, query },
       {
         ...options,
-        method: 'delete',
+        method: "delete"
       }
     );
   }
@@ -234,23 +242,25 @@ class TwitchApi {
     let { body, headers = {} } = options;
     const clientId = process.env.TWITCH_CLIENT_ID;
     headers = {
-      Accept: 'application/vnd.twitchtv.v5+json',
-      'Content-Type': 'application/json',
-      ...headers,
+      Accept: "application/vnd.twitchtv.v5+json",
+      "Content-Type": "application/json",
+      ...headers
     };
     if (clientId) {
-      headers['Client-ID'] = clientId;
+      headers["Client-ID"] = clientId;
     }
-    if (body && typeof body === 'object') {
-      if (headers['Content-Type'] === 'application/json') {
+    if (body && typeof body === "object") {
+      if (headers["Content-Type"] === "application/json") {
         body = this.handleBodyAsJson(body);
-      } else if (headers['Content-Type'] === 'application/x-www-form-urlencoded') {
+      } else if (
+        headers["Content-Type"] === "application/x-www-form-urlencoded"
+      ) {
         body = this.handleBodyAsFormUrlencoded(body);
       }
     }
     let opts = { ...options, body, headers };
     const apiUrl = this.apiUrl(url);
-    logger('request', apiUrl, opts);
+    logger("request", apiUrl, opts);
     const res = await fetch(apiUrl, opts);
     return this.handleResponse(res);
   }
@@ -258,7 +268,7 @@ class TwitchApi {
   apiUrl(url: any = {}) {
     let { pathname, query = {}, ...other } = url;
     let parsedApiUrl = parseUrl(apiUrl);
-    if (String(pathname).startsWith('http')) {
+    if (String(pathname).startsWith("http")) {
       parsedApiUrl = parseUrl(pathname);
       pathname = parsedApiUrl.pathname;
     }
@@ -266,13 +276,13 @@ class TwitchApi {
       ...parsedApiUrl,
       pathname,
       query,
-      ...other,
+      ...other
     });
   }
 
   async handleResponse(res) {
-    const contentType = res.headers.get('content-type') || 'text';
-    if (contentType.includes('json')) {
+    const contentType = res.headers.get("content-type") || "text";
+    if (contentType.includes("json")) {
       return this.handleResponseAsJson(res);
     }
     return this.handleResponseAsText(res);
@@ -286,22 +296,24 @@ class TwitchApi {
     return Object.entries(body)
       .filter(([, value]) => value !== undefined)
       .map(([key, value]) =>
-        Array.isArray(value) ? value.map(item => `${key}=${item}`).join('&') : `${key}=${value}`
+        Array.isArray(value)
+          ? value.map(item => `${key}=${item}`).join("&")
+          : `${key}=${value}`
       )
-      .join('&');
+      .join("&");
   }
 
   async handleResponseAsJson(res) {
     if (res.status >= 400) {
       const error = await res.json();
-      logger('error', error);
+      logger("error", error);
       throw error;
     }
     if (res.status === 204) {
       return null;
     }
     let data = await res.json();
-    data = typeof data === 'string' ? JSON.parse(data) : data;
+    data = typeof data === "string" ? JSON.parse(data) : data;
     //logger('response', res.url, res.status, res.headers.get('content-type'), data);
     return data;
   }
@@ -309,7 +321,7 @@ class TwitchApi {
   async handleResponseAsText(res) {
     if (res.status >= 400) {
       const error = await res.text();
-      logger('error', error);
+      logger("error", error);
       throw error;
     }
     if (res.status === 204) {
