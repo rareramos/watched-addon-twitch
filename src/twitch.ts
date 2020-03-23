@@ -47,8 +47,7 @@ class TwitchApi {
       const items = Array.from(streams || []).map<ChannelItem>(({ channel }: any) =>
         this.convertChannel(channel)
       );
-      // isssue api returns < limit items
-      const nextCursor = offset + limit;
+      const nextCursor = streams.length > 0 ? offset + limit : offset;
       return {
         nextCursor,
         items,
@@ -70,7 +69,7 @@ class TwitchApi {
       const items = Array.from(streams || []).map<ChannelItem>(({ channel }: any) =>
         this.convertChannel(channel)
       );
-      const nextCursor = offset + limit;
+      const nextCursor = streams.length > 0 ? offset + limit : offset;
       return {
         nextCursor,
         items,
