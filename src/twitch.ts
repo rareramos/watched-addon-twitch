@@ -38,7 +38,7 @@ class TwitchApi {
   async getChannels(input: DirectoryRequest) {
     const filter = input.filter || {};
     const limit = 25;
-    const offset = input.cursor === null ? 0 : input.cursor || 0;
+    const offset: number = input.cursor === null ? 0 : <number>input.cursor || 0;
     return await this.get('kraken/streams', {
       ...filter,
       limit,
@@ -47,8 +47,10 @@ class TwitchApi {
       const items = Array.from(streams || []).map<ChannelItem>(({ channel }: any) =>
         this.convertChannel(channel)
       );
+      // isssue api returns < limit items
+      const nextCursor = offset + limit;
       return {
-        nextCursor: streams.length === limit ? null : offset + streams.length,
+        nextCursor,
         items,
         features: {
           filter: websiteFilters,
@@ -59,7 +61,7 @@ class TwitchApi {
 
   async searchChannels(input: DirectoryRequest) {
     const limit = 25;
-    const offset = input.cursor === null ? 0 : input.cursor || 0;
+    const offset: number = input.cursor === null ? 0 : <number>input.cursor || 0;
     return await this.get('kraken/search/streams', {
       query: input.search,
       limit,
@@ -68,8 +70,9 @@ class TwitchApi {
       const items = Array.from(streams || []).map<ChannelItem>(({ channel }: any) =>
         this.convertChannel(channel)
       );
+      const nextCursor = offset + limit;
       return {
-        nextCursor: streams.length === limit ? null : offset + streams.length,
+        nextCursor,
         items,
         features: {
           filter: websiteFilters,
@@ -88,12 +91,10 @@ class TwitchApi {
       const items = Array.from(top || []).map<DirectoryItem>(({ game }: any) =>
         this.convertGame(game)
       );
+      const nextCursor = offset + limit < _total ? offset + limit : offset;
       return {
-        nextCursor: offset + limit < _total ? offset + items.length : null,
+        nextCursor,
         items,
-        features: {
-          filter: [],
-        },
       };
     });
   }
