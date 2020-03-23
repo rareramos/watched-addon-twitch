@@ -36,9 +36,11 @@ const websiteFilters: DirectoryFeatures['filter'] = [
 
 class TwitchApi {
   async getChannels(input: DirectoryRequest) {
+    const filter = input.filter || {};
     const limit = 25;
     const offset = input.cursor === null ? 0 : input.cursor || 0;
     return await this.get('kraken/streams', {
+      ...filter,
       limit,
       offset,
     }).then(({ streams }) => {
