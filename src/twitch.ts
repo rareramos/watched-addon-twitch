@@ -90,7 +90,7 @@ class TwitchApi {
       const items = Array.from(top || []).map<DirectoryItem>(({ game }: any) =>
         this.convertGame(game)
       );
-      const nextCursor = offset + limit < _total ? offset + limit : offset;
+      const nextCursor = offset + limit < _total ? offset + limit : null;
       return {
         nextCursor,
         items,
