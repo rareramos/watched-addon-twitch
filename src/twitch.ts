@@ -37,7 +37,7 @@ const websiteFilters: DirectoryFeatures['filter'] = [
 class TwitchApi {
   async getChannels(input: DirectoryRequest) {
     const limit = 25;
-    const offset = input.cursor === 0 ? 0 : input.cursor;
+    const offset = input.cursor === null ? 0 : input.cursor || 0;
     return await this.get('kraken/streams', {
       limit,
       offset,
@@ -57,7 +57,7 @@ class TwitchApi {
 
   async searchChannels(input: DirectoryRequest) {
     const limit = 25;
-    const offset = input.cursor === 0 ? 0 : input.cursor;
+    const offset = input.cursor === null ? 0 : input.cursor || 0;
     return await this.get('kraken/search/streams', {
       query: input.search,
       limit,
@@ -78,7 +78,7 @@ class TwitchApi {
 
   async getGames(input: DirectoryRequest) {
     const limit = 25;
-    const offset = input.cursor === null ? 0 : <number>input.cursor;
+    const offset = input.cursor === null ? 0 : <number>input.cursor || 0;
     return await this.get('kraken/games/top', {
       limit,
       offset,
