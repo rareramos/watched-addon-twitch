@@ -1,31 +1,31 @@
-import { createWorkerAddon, WorkerHandlers } from "@watchedcom/sdk";
-import twitch from "./twitch";
+import { createWorkerAddon } from '@watchedcom/sdk';
+import twitch from './twitch';
 
 export const twitchAddon = createWorkerAddon({
-  id: "twitch",
-  name: "Twitch Games",
-  version: "0.0.1",
-  itemTypes: ["channel"],
+  id: 'twitch',
+  name: 'Twitch Games',
+  version: '0.0.1',
+  itemTypes: ['channel'],
   defaultDirectoryOptions: {
-    imageShape: "landscape",
-    displayName: true
+    imageShape: 'landscape',
+    displayName: true,
   },
   defaultDirectoryFeatures: {
-    search: { enabled: true }
+    search: { enabled: true },
   },
   dashboards: [
     {
-      id: "",
-      name: "Twitch Games"
+      id: '',
+      name: 'Twitch Games',
     },
     {
-      id: "channels",
-      name: "Top Twitch Channels"
-    }
-  ]
+      id: 'channels',
+      name: 'Top Twitch Channels',
+    },
+  ],
 });
 
-twitchAddon.registerActionHandler("directory", async (input, ctx) => {
+twitchAddon.registerActionHandler('directory', async (input, ctx) => {
   if (input.id) {
     return await twitch.getChannels(input);
   } else if (input.search) {
@@ -35,10 +35,10 @@ twitchAddon.registerActionHandler("directory", async (input, ctx) => {
   }
 });
 
-twitchAddon.registerActionHandler("item", async (input, ctx) => {
+twitchAddon.registerActionHandler('item', async (input, ctx) => {
   return await twitch.getChannel(input);
 });
 
-twitchAddon.registerActionHandler("source", async (input, ctx) => {
+twitchAddon.registerActionHandler('source', async (input, ctx) => {
   return [];
 });
