@@ -38,7 +38,3 @@ twitchAddon.registerActionHandler('directory', async (input, ctx) => {
 twitchAddon.registerActionHandler('item', async (input, ctx) => {
   return await twitch.getChannel(input);
 });
-
-twitchAddon.registerActionHandler('source', async (input, ctx) => {
-  return [];
-});
