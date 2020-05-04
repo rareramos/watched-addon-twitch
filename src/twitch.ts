@@ -101,28 +101,6 @@ class TwitchApi {
   async getChannel({ ids }): Promise<ChannelItem> {
     let channel: ChannelItem;
     const data = await this.get(`kraken/channels/${ids.id}`);
-    const result = await this.get(
-      `http://api.twitch.tv/api/channels/${encodeURIComponent(data.display_name)}/access_token`
-    );
-    if (result.sig) {
-      const videoUrl = formatUrl({
-        host: 'usher.ttvnw.net',
-        protocol: 'https',
-        pathname: `api/channel/hls/${encodeURIComponent(data.display_name).toLowerCase()}.m3u8`,
-        query: {
-          player: 'twitchweb',
-          token: result.token,
-          sig: result.sig,
-          allow_audio_only: 'true',
-          allow_source: 'true',
-          type: 'any',
-          p: Math.floor(Math.random() * 999999 + 1),
-        },
-      });
-      data.videoUrl = videoUrl;
-    } else {
-      data.externalUrl = data.url;
-    }
     channel = this.convertChannel(data);
     return channel;
   }
@@ -160,7 +138,7 @@ class TwitchApi {
 
   convertChannel(data: any): ChannelItem {
     const channel: ChannelItem = {
-      id: data.display_name,
+      id: data._id,
       type: 'channel',
       ids: { id: data._id },
       name: data.status,
@@ -174,24 +152,15 @@ class TwitchApi {
         poster: data.video_banner || undefined,
         background: data.profile_banner || undefined,
       },
-      sources: [],
+      sources: [
+        {
+          id: data._id,
+          name: data.status,
+          type: 'url',
+          url: `https://api.twitch.tv/api/channels/${data.name.toLowerCase()}/access_token`,
+        },
+      ],
     };
-    if (data.videoUrl) {
-      channel.sources?.push({
-        id: channel.id,
-        name: channel.name,
-        type: 'url',
-        url: data.videoUrl,
-      });
-    }
-    if (data.externalUrl) {
-      channel.sources?.push({
-        id: channel.id,
-        name: channel.name,
-        type: 'externalUrl',
-        url: data.externalUrl,
-      });
-    }
     return channel;
   }
 

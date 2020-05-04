@@ -1,5 +1,6 @@
 import { createWorkerAddon } from '@watchedcom/sdk';
 import twitch from './twitch';
+import { format as formatUrl, parse as parseUrl } from 'url';
 
 export const twitchAddon = createWorkerAddon({
   id: 'twitch',
@@ -38,3 +39,32 @@ twitchAddon.registerActionHandler('directory', async (input, ctx) => {
 twitchAddon.registerActionHandler('item', async (input, ctx) => {
   return await twitch.getChannel(input);
 });
+
+twitchAddon.addResolveHandler(
+  new RegExp('/api.twitch.tv/api/channels'),
+  async (match, input, ctx) => {
+    ctx.requestCache([input.url]);
+    const displayName = input.url.match(/s\/.+\/a/);
+    const data = { displayName: (displayName && displayName[0].slice(2, -2)) || '', url: '' };
+    const result = await twitch.get(input.url);
+    if (result.sig) {
+      data.url = formatUrl({
+        host: 'usher.ttvnw.net',
+        protocol: 'https',
+        pathname: `api/channel/hls/${encodeURIComponent(data.displayName).toLowerCase()}.m3u8`,
+        query: {
+          player: 'twitchweb',
+          token: result.token,
+          sig: result.sig,
+          allow_audio_only: 'true',
+          allow_source: 'true',
+          type: 'any',
+          p: Math.floor(Math.random() * 999999 + 1),
+        },
+      });
+    } else {
+      return [];
+    }
+    return data.url;
+  }
+);
