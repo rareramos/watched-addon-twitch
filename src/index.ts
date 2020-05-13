@@ -1,8 +1,8 @@
-import { createWorkerAddon } from '@watchedcom/sdk';
+import { createWorkerAddon, runCli } from '@watchedcom/sdk';
 import twitch from './twitch';
 import { format as formatUrl, parse as parseUrl } from 'url';
 
-export const twitchAddon = createWorkerAddon({
+const twitchAddon = createWorkerAddon({
   id: 'twitch',
   name: 'Twitch Games',
   version: '0.0.1',
@@ -43,7 +43,6 @@ twitchAddon.registerActionHandler('item', async (input, ctx) => {
 twitchAddon.addResolveHandler(
   new RegExp('/api.twitch.tv/api/channels'),
   async (match, input, ctx) => {
-    ctx.requestCache([input.url]);
     const displayName = input.url.match(/s\/.+\/a/);
     const data = { displayName: (displayName && displayName[0].slice(2, -2)) || '', url: '' };
     const result = await twitch.get(input.url);
@@ -68,3 +67,7 @@ twitchAddon.addResolveHandler(
     return data.url;
   }
 );
+
+runCli([twitchAddon], {
+  singleMode: true,
+});
